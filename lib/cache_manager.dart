@@ -1,21 +1,68 @@
+import 'dart:async';
+
+import 'package:data_cache_manger/data_cache_manger.dart';
+
 import 'cache_strategy.dart';
 import 'storage/hive_impl.dart';
 
 typedef AsyncFunc<T> = Function;
 typedef SerializerFunc<T> = Function(dynamic);
 
-class CacheManager {
-  final StorageImplimentation sotrageImplimentation;
+class CacheManager<T> {
+  final StorageImplimentation sotrageImplimentation = StorageImplimentation();
 
-  CacheManager(
-    this.sotrageImplimentation,
-  );
+  CacheManager();
 
   String? defaultSessionName;
+  late StrategyBuilder _strategyBuilder;
 
-  StrategyBuilder from<T>(String key) =>
-      StrategyBuilder<T>(key, sotrageImplimentation)
-          .withSession(defaultSessionName);
+  CacheManager.cacheOrSync(
+      {required SerializerFunc serializerFunc,
+      required String key,
+      required AsyncFunc<T> asyncBloc,
+      int? ttlValue}) {
+    _strategyBuilder = StrategyBuilder<T>(key, sotrageImplimentation)
+        .withSerializer((serializerFunc))
+        .withAsync(asyncBloc)
+        .withStrategy(CacheOrAsyncStrategy());
+    if (ttlValue != null) {
+      _strategyBuilder.withTtl(ttlValue);
+    }
+  }
+
+  CacheManager.justCache(
+      {required String key, required SerializerFunc serializerFunc, int? ttlValue}) {
+    _strategyBuilder = StrategyBuilder<T>(key, sotrageImplimentation)
+        .withAsync((){})
+        .withSerializer(serializerFunc)
+        .withStrategy(JustCacheStrategy());
+    if (ttlValue != null) {
+      _strategyBuilder.withTtl(ttlValue);
+    }
+  }
+  CacheManager.justAsync(
+      {required String key, required AsyncFunc<T> asyncBloc, int? ttlValue}) {
+    _strategyBuilder = StrategyBuilder<T>(key, sotrageImplimentation)
+        .withAsync(asyncBloc)
+        .withSerializer((p0) {})
+        .withStrategy(JustAsyncStrategy());
+    if (ttlValue != null) {
+      _strategyBuilder.withTtl(ttlValue);
+    }
+  }
+
+  Future<T?> call() async {
+    try {
+      return await _strategyBuilder._strategy.applyStrategy<T?>(
+          _strategyBuilder._asyncFunc,
+          _strategyBuilder.buildSessionKey(_strategyBuilder._key),
+          _strategyBuilder._serializerFunc,
+          _strategyBuilder._ttlValue,
+          _strategyBuilder._cacheStorage);
+    } catch (exception) {
+      rethrow;
+    }
+  }
 
   Future clear({String? prefix}) async {
     if (defaultSessionName != null && prefix != null) {

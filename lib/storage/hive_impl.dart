@@ -1,19 +1,21 @@
 
 
 import 'package:data_cache_manger/storage/storage.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_flutter/adapters.dart';
 
 class StorageImplimentation implements Storage {
   final String _hiveBoxName = 'cache storage';
-
   StorageImplimentation() {
      Hive.initFlutter();
-     Hive.openBox(_hiveBoxName);
   }
 
+  Future<Box> getBox()async{
+    Box hive=await Hive.openBox(_hiveBoxName);
+    return hive;
+  }
   @override
   Future<void> clear({String? prefix}) async {
-    final box = Hive.box(_hiveBoxName);
+    final box=await getBox();
     if (prefix == null) {
       await box.clear();
     } else {
@@ -27,25 +29,25 @@ class StorageImplimentation implements Storage {
 
   @override
   Future<void> delete(String key) async {
-    final box = Hive.box(_hiveBoxName);
+    final box=await getBox();
     return box.delete(key);
   }
 
   @override
   Future<String?> read(String key) async {
-    final box = Hive.box(_hiveBoxName);
+    final box=await getBox();
     return box.get(key);
   }
 
   @override
   Future<void> write(String key, String value) async {
-    final box = Hive.box(_hiveBoxName);
+    final box=await getBox();
     return box.put(key, value);
   }
 
   @override
   Future<int> count({String? prefix}) async {
-    final box = Hive.box(_hiveBoxName);
+    final box=await getBox();
     if (prefix == null) {
       return box.length;
     } else {
