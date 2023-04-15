@@ -1,6 +1,7 @@
 import 'package:data_cache_manger/cache_manager.dart';
 import 'package:data_cache_manger/example/data_provider/data_provider.dart';
 import 'package:data_cache_manger/example/data_provider/fake_data_model.dart';
+import 'package:flutter/foundation.dart';
 
 void cacheOrAsync() async {
   // First it will check if the data exist in the storage retrieved data from there
@@ -10,7 +11,7 @@ void cacheOrAsync() async {
       key: 'your key',
       asyncBloc: getFakeDataAsync);
   FaKeData? faKeData = await cacheManager();
-  print(faKeData.toString());
+
 }
 void justAsync() async {
   //  it will just retrieve data async
@@ -18,7 +19,7 @@ void justAsync() async {
       key: 'your key',
       asyncBloc: getFakeDataAsync);
   FaKeData? faKeData = await cacheManager();
-  print(faKeData.toString());
+
 }
 void justCache() async {
   //  it will just retrieve data async
@@ -26,6 +27,5 @@ void justCache() async {
       key: 'your key',
     serializerFunc: (data) => Future.value(FaKeData.fromJson(data)),);
   FaKeData? faKeData = await cacheManager();
-  print(faKeData.toString());
 }
 
