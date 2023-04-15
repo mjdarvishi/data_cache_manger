@@ -15,22 +15,24 @@ After that import it where ever you want to use it.
 
 <b>`import 'package:data_cache_manger/data_cache_manger.dart';`</b>
 
-
 And finally like the blow codes use it to retrvied data from api or get data from storage.</br>
 <b>Retrieved data cacheOrAsync</b>
+And finally like the blow code use it to get data from api or get data from storage.
+
 ```dart
-void cacheOrAsync() async {
-  // First it will check if the data exist in the storage retrieved data from there
-  // and if it does not exist there, then it retrieved them from async function
-  CacheManager<FaKeData> cacheManager = CacheManager<FaKeData>.cacheOrSync(
-      serializerFunc: (data) => Future.value(FaKeData.fromJson(data)),
-      key: 'your key',
-      asyncBloc: getFakeDataAsync);
-  FaKeData? faKeData = await cacheManager();
-  print(faKeData.toString());
+ void test() async {
+  CacheManager _cacheManager = CacheManager(StorageImplimentation());
+  final apiProvider = AuthRepository(http);
+
+  await _cacheManager
+      .from<Login>("")
+      .withSerializer((result) {})
+      .withAsync(() => apiProvider.sendCode(''))
+      .withStrategy(CacheOrAsyncStrategy())
+      .execute();
 }
 ```
-</br>
+<br>
 
 <b>Retrieved data justAsync</b>
 ```dart
@@ -55,3 +57,6 @@ void justCache() async {
   FaKeData? faKeData = await cacheManager();
   print(faKeData.toString());
 }
+```
+
+You can contribute on github https://github.com/mjdarvishi
